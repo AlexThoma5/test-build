@@ -8,6 +8,11 @@ body {
     text-align: center;
 }
 
+.selected {
+    background-color: red;
+    ;
+}
+
 /* --------- Heading */
 
 .heading {
