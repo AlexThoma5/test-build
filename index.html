@@ -16,10 +16,10 @@
 
     <div class="game-area">
         <div class="number-area">
-            <button class="number-btn game-btn"><span id="operand1">?</span></button>
-            <button class="number-btn game-btn"><span id="operand2">?</span></button>
-            <button class="number-btn game-btn"><span id="operand3">?</span></button>
-            <button class="number-btn game-btn"><span id="operand4">?</span></button>
+            <button class="number-btn game-btn" data-type="operand1"><span id="operand1">?</span></button>
+            <button class="number-btn game-btn" data-type="operand2"><span id="operand2">?</span></button>
+            <button class="number-btn game-btn" data-type="operand3"><span id="operand3">?</span></button>
+            <button class="number-btn game-btn" data-type="operand4"><span id="operand4">?</span></button>
         </div>
         <div class="operator-area">
             <button data-type="addition" id="plus" class="btn btn--big btn--blue">
@@ -34,6 +34,9 @@
             <button data-type="divide" id="divide" class="btn btn--big btn--red">
                 <i class="fas fa-divide"></i>
             </button>
+        </div>
+        <div>
+            <button data-type="start" id="start" class="btn">Start Game</button>
         </div>
     </div>
 
