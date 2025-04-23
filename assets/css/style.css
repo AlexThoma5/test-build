@@ -13,14 +13,6 @@ body {
     ;
 }
 
-.hide {
-    display: none;
-}
-
-.show {
-    display: block;
-}
-
 /* --------- Heading */
 
 .heading {
@@ -56,6 +48,10 @@ body {
 
 .number-area span {
     padding: 0 15px;
+}
+
+.operator-area {
+    display: none;
 }
 
 .score-area {
