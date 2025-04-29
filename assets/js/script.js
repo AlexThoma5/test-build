@@ -5,17 +5,24 @@
 
 document.addEventListener("DOMContentLoaded", function(){
     
+    // Allows the operator area to be hidden when not in use
+    const operatorArea = document.querySelector(".operator-area");
+
+    // Function that is called after every time the user presses a number
+    // Mananges the how game behaves depending on what step it is in
     function manageGameState() {
        
         if (gameState.step === 2) {
-            gameState.num1 = gameState.chosenNumber;
-            operatorArea.style.display = "block";
+            gameState.num1 = gameState.chosenNumber; // num1 is the button user clicks
+            gameState.num1ButtonLocation = gameState.lastClickedButton; // Tracks the location of num1 button to use for UI updates
+            operatorArea.style.display = "block"; // Once user has clicked a number, the operators appear
         } else if (gameState.step === 3) {
-            gameState.num2 = gameState.chosenNumber;
+            gameState.num2 = gameState.chosenNumber; // num2 is the button user clicks
+            gameState.num2ButtonLocation = gameState.lastClickedButton; // Tracks the location of num2 button to use for UI updates
             performCalculation(gameState.num1, gameState.operator, gameState.num2);
             console.log(gameState.num3);
         } else if (gameState.step === 4) {
-            
+            gameState.num1ButtonLocation.style.display = 'none'; // Hides num1Button after succesful calculation
         } else if (gameState.step === 1) {
             resetGameState();
         }
@@ -27,7 +34,9 @@ document.addEventListener("DOMContentLoaded", function(){
     // Game state lives here (idea Taken from chatGPT)
     const gameState = {
         num1: null,
+        num1ButtonLocation: null,
         num2: null,
+        num2ButtonLocation: null,
         num3: null,
         operator: null,
         clickedOp: null,
@@ -56,8 +65,7 @@ document.addEventListener("DOMContentLoaded", function(){
         
         // Stores the randomSet from the numbers array into a variable
         const selectedNums = getRandomSet();
-
-        // Allows 
+ 
         gameState.activeArray = selectedNums;
         
         // Inserts the numbers from the selected array into each button
@@ -67,8 +75,6 @@ document.addEventListener("DOMContentLoaded", function(){
         document.getElementById('operand4').innerText = gameState.activeArray[3];
 
     }
-
-    const operatorArea = document.querySelector(".operator-area");
 
     function handleNumberClick(event) {
 
@@ -165,6 +171,7 @@ document.addEventListener("DOMContentLoaded", function(){
                 break;
         }
 
+        manageGameState();
     }
 
     function updateNumberArray() {
