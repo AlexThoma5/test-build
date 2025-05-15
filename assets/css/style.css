@@ -13,6 +13,7 @@ body {
     ;
 }
 
+
 /* --------- Heading */
 
 .heading {
@@ -50,9 +51,14 @@ body {
     padding: 0 15px;
 }
 
-.operator-area {
+/* .operator-area {
     display: none;
-}
+} */
+
+.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+  }
 
 .score-area {
     margin: 5px auto;

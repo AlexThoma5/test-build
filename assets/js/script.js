@@ -5,32 +5,24 @@
 
 document.addEventListener("DOMContentLoaded", function(){
     
-    // Allows the operator area to be hidden when not in use
-    const operatorArea = document.querySelector(".operator-area");
+    // Get the button Elements and add event listeners to them
+    let buttons = document.getElementsByTagName("button");
 
-    // Function that is called after every time the user presses a number
-    // Mananges the how game behaves depending on what step it is in
-    function manageGameState() {
-       
-        if (gameState.step === 2) {
-            gameState.num1 = gameState.chosenNumber; // num1 is the button user clicks
-            gameState.num1ButtonIndex = gameState.index; // Tracks the index of num1 button to update array
-            operatorArea.style.display = "block"; // Once user has clicked a number, the operators appear
-        } else if (gameState.step === 3) {
-            gameState.num2 = gameState.chosenNumber; // num2 is the button user clicks
-            gameState.num2ButtonIndex = gameState.index; // Tracks the index of num1 button to update array
-            performCalculation(gameState.num1, gameState.operator, gameState.num2);
-        } else if (gameState.step === 4) {
-            storeNumberArray(); // Store the number array so we can backtrack with undo button later on
-            updateNumberArray(); // After calculation update the array
-            displayNumbers(); // Update the UI to reflect the updated array
-            resetGameState(); // Reset variables to send the user back to step 1
-        } else if (gameState.step === 1) {
-            resetGameState(); // Resets gameState if user tries to calculate a negative number
-        }
-
-        console.log("----------------------------");
-        console.log(gameState);
+    for (let button of buttons) {
+        button.addEventListener("click", function(){
+            if (this.getAttribute("data-type") === "start"){
+                resetGameState();
+                document.getElementById("score").innerText = 0; // Resets score at DOM
+                runGame();
+                startGameTimer();
+            } else if (this.classList.contains("game-btn")){
+                handleNumberClick(event);
+            } else if (this.classList.contains("operator-btn")){
+                handleOperatorClick(event);
+            } else if (this.getAttribute("data-type") === "undo") {
+                revertArray();
+            } 
+        })
     }
 
     // Game state object lives here (idea taken from chatGPT)
@@ -53,7 +45,81 @@ document.addEventListener("DOMContentLoaded", function(){
         secondVersionArray: [],
         thirdVersionArray: [],
         fourthVersionArray: [],
-    };
+        };
+    
+    /**
+     * The function that starts the game
+     */
+    function runGame() {
+
+        gameState.activeArray = getRandomSet(); // Stores the random set of numbers into the active array for the UI to display
+        gameState.round = 1; // Resets the round count to 1 when new game is started
+        displayNumbers(); // Displays the active array to the user
+    }
+
+    // Function that starts the game timer
+    function startGameTimer() {
+
+        let secondsLeft = 10;
+
+        const timerId = setInterval(() => {
+
+            // Checks if there are 0 seconds left, if so clear the timer
+            if (secondsLeft === 0) {
+                clearInterval(timerId);
+                showScoreModal();
+            }
+
+            // Decrement seconds remaining
+            secondsLeft--;
+            
+            // Checks if seconds is bigger than or equal to zero first to prevent showing negative numbers on timer
+            if (secondsLeft >= 0) {
+                // Update display to reflect how much time the user has remaining
+                updateTimerDisplay(secondsLeft);
+            };
+
+        }, 1000);
+    }
+
+    function updateTimerDisplay(secondsLeft){
+
+        // Convert the seconds left into a minutes variable
+        const minutes = Math.floor(secondsLeft / 60);
+
+        // Stores the remaining seconds into a variable
+        const seconds = secondsLeft % 60;
+
+        // Updates the UI with our respective variables, padStart is added to display the time in a MM:SS format
+        document.getElementById("minutes").innerText = `${minutes}`.padStart(2, "0");
+        document.getElementById("seconds").innerText = `${seconds}`.padStart(2, "0");
+    }
+
+    // Function that is called after every time the user presses a number
+    // Mananges the how game behaves depending on what step it is in
+    function manageGameState() {
+       
+        if (gameState.step === 2) {
+            gameState.num1 = gameState.chosenNumber; // num1 is the button user clicks
+            gameState.num1ButtonIndex = gameState.index; // Tracks the index of num1 button to update array
+            document.querySelector(".operator-area").classList.remove("disabled"); // Once user has clicked a number, the operators appear
+        } else if (gameState.step === 3) {
+            gameState.num2 = gameState.chosenNumber; // num2 is the button user clicks
+            gameState.num2ButtonIndex = gameState.index; // Tracks the index of num1 button to update array
+            performCalculation(gameState.operator); // performs the calculation of the two numbers and passed operator
+        } else if (gameState.step === 4) {
+            storeNumberArray(); // Store the number array so we can backtrack with undo button later on
+            updateNumberArray(); // After calculation update the array
+            displayNumbers(); // Update the UI to reflect the updated array
+            checkForWin(); // After numbers are updated, check if User has won a point
+            resetGameState(); // Reset variables to send the user back to step 1
+        } else if (gameState.step === 1) {
+            resetGameState(); // Resets gameState if user tries to calculate a negative number
+        }
+
+        console.log("--------------------------------------------------------------------------");
+        console.log(gameState);
+    }
 
     function getRandomSet() {
 
@@ -71,17 +137,6 @@ document.addEventListener("DOMContentLoaded", function(){
 
     function displayNumbers() {
         
-        // Only if the games step is equal to one, get a new set of numbers
-        if (gameState.step === 1) {
-
-            // Stores the randomSet from the numbers array into a variable
-            const selectedNums = getRandomSet();
-
-            // Stores the live version of the array into the gameState for tracking
-            gameState.activeArray = selectedNums;
-
-        }
-
         // Inserts the numbers from the selected array into each button
         document.getElementById('operand1').innerText = gameState.activeArray[0];
         document.getElementById('operand2').innerText = gameState.activeArray[1];
@@ -160,14 +215,10 @@ document.addEventListener("DOMContentLoaded", function(){
             gameState.operator = clickedOp.innerText;
             gameState.step = 3;
         }
-
-        console.log("----------------------------");
-        console.log(`step is: ${gameState.step}`);
-        console.log(`operator: ${gameState.operator}`);
     }
 
     // function to perform calculation between selected numbers and update step
-    function performCalculation(num1, operator, num2) {
+    function performCalculation(operator) {
         
         let answer;
 
@@ -219,14 +270,70 @@ document.addEventListener("DOMContentLoaded", function(){
         } else if (gameState.round === 3) {
             gameState.thirdVersionArray = gameState.activeArray.slice();
             gameState.round++;
-        } else if (gameState.round === 4) {
-            gameState.fourthVersionArray = gameState.activeArray.slice();
-            gameState.round = 1;
         }
+    }
+
+    // Reverts current active array back to previous version depending on round
+    function revertArray() {
+
+        if (gameState.round === 4) {
+            gameState.activeArray = gameState.thirdVersionArray.slice();
+            gameState.round--;
+        } else if (gameState.round === 3) {
+            gameState.activeArray = gameState.secondVersionArray.slice();
+            gameState.round--;
+        } else if (gameState.round === 2) {
+            gameState.activeArray = gameState.initialArrayCopy.slice();
+            gameState.round--
+        } else {
+            return;
+        }
+
+        displayNumbers();
     }
 
     function checkForWin() {
 
+        // Filters the numbers array, removes all falsey values. Only numbers remain.
+        const filterArray = gameState.activeArray.filter(Boolean);
+
+        if (filterArray.length === 1 && filterArray[0] === 24) {
+            incrementScore();
+
+            // Wait 0.5 seconds before starting a new round (code taken from chatGPT)
+            setTimeout(() => {runGame();}, 500);
+        }
+
+    }
+
+    /**
+    * Gets the current score from the DOM and increments it by 1
+    */
+    function incrementScore() {
+
+        let oldScore = parseInt(document.getElementById("score").innerText);
+        document.getElementById("score").innerText = ++oldScore;
+    }
+
+    /**
+     * Display the game ending modal when the game timer reaches 00:00
+     */
+    function showScoreModal() {
+
+        const modal = new bootstrap.Modal(document.getElementById('staticBackdrop'));
+        modal.show();
+        
+        // Updates the modal to match the users final score
+        updateModalContent();
+    }
+
+    /**
+     * Gets the current score from the DOM and stores it
+     */
+    function updateModalContent() {
+
+        let finalScore = parseInt(document.getElementById("score").innerText);
+        document.getElementById("finalScore").innerText = finalScore;
     }
 
     function resetGameState() {
@@ -253,25 +360,7 @@ document.addEventListener("DOMContentLoaded", function(){
         gameState.lastClickedButton = null;
         gameState.step = 1;
         gameState.chosenNumber = null;
-        operatorArea.style.display = 'none';
-    }
-
-    // Get the button Elements and add event listeners to them
-    let buttons = document.getElementsByTagName("button");
-
-    for (let button of buttons) {
-        button.addEventListener("click", function(){
-            if (this.getAttribute("data-type") === "start"){
-                resetGameState();
-                displayNumbers();
-            } else if (this.classList.contains("game-btn")){
-                handleNumberClick(event);
-            } else if (this.classList.contains("operator-btn")){
-                handleOperatorClick(event);
-            } else {
-                alert(`You clicked ${data-type}`);
-            }
-        })
+        document.querySelector(".operator-area").classList.add("disabled");
     }
 
 })
